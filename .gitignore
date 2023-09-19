@@ -1,0 +1,13 @@
+.vscode
+.DS_store
+
+Public
+
+# ignore all files except *.cpp
+*/src/*
+!*/src/*.cpp
+!*/src/*.hpp
+!*/src/Makefile
+
+*/deprecated
+lab1/lab1_assign
