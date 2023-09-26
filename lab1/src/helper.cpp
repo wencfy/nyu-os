@@ -129,6 +129,7 @@ Symbol::Symbol(std::string symbol, int address, int module) {
     this->address = address;
     this->module = module;
     this->redef = false;
+    this->used = false;
 }
 
 void Parser::create_symbol(std::string symbol, int address, int module) {
@@ -190,10 +191,19 @@ void Parser::check_symbol_address(int module) {
 }
 
 int Parser::get_symbol_address(std::string symbol) {
-    for (Symbol s: symbol_table) {
-        if (s.value == symbol) {
-            return s.address;
+    for (int i = 0; i < symbol_table.size(); i++) {
+        if (symbol_table[i].value == symbol) {
+            symbol_table[i].used = true;
+            return symbol_table[i].address;
         }
     }
     return -1;
+}
+
+void Parser::check_used() {
+    for (Symbol s: symbol_table) {
+        if (!s.used) {
+            printf("Warning: Module %d: %s was defined but never used\n", s.module, s.value.c_str());
+        }
+    }
 }

@@ -8,6 +8,7 @@ public:
     int address;
     int module;
     bool redef;
+    bool used;
 
     Symbol(std::string symbol, int address, int module);
 };
@@ -47,4 +48,5 @@ public:
     void print_symbol_table();
     void check_symbol_address(int module);
     int get_symbol_address(std::string);
+    void check_used();
 };

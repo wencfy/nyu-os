@@ -183,6 +183,9 @@ void pass2(Parser *parser) {
             }
         }
     }
+
+    printf("\n");
+    parser->check_used();
 }
 
 int main(int argc, char *argv[]) {
