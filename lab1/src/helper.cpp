@@ -207,3 +207,7 @@ void Parser::check_used() {
         }
     }
 }
+
+void Parser::close() {
+    in.close();
+}

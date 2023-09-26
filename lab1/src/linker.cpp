@@ -202,6 +202,8 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     pass2(parser);
+
+    parser->close();
     
     return 0;
 }
