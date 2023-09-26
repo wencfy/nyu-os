@@ -80,12 +80,12 @@ void pass2(Parser *parser) {
             int val = parser->read_int(false);
         }
 
-        std::vector<std::string> use_list;
+        std::vector<pair<std::string, bool>> use_list;
         int use_count = parser->read_int(false);
         for (int i = 0; i < use_count; i++) {
             string symbol = parser->read_symbol();
 
-            use_list.push_back(symbol);
+            use_list.push_back({symbol, false});
         }
 
         int ins_count = parser->read_int(false);
@@ -154,7 +154,8 @@ void pass2(Parser *parser) {
 
                     case 'E': {
                         if (operand < use_list.size()) {
-                            std::string symbol = use_list[operand];
+                            std::string symbol = use_list[operand].first;
+                            use_list[operand].second = true;
                             int address = parser->get_symbol_address(symbol);
                             if (address != -1) {
                                 operand = address;
@@ -173,6 +174,13 @@ void pass2(Parser *parser) {
             }
 
             printf((address + message).c_str(), cur_no, opcode, operand);
+        }
+
+        for (int i = 0; i < use_list.size(); i++) {
+            auto p = use_list[i];
+            if (!p.second) {
+                printf("Warning: Module %d: uselist[%d]=%s was not used\n", module_count, i, p.first.c_str());
+            }
         }
     }
 }
