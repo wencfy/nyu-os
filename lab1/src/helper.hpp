@@ -1,4 +1,5 @@
 #include "fstream"
+#include "vector"
 #include "map"
 
 
@@ -27,7 +28,8 @@ private:
     std::vector<Symbol> symbol_table;
 
 public:
-    std::vector<int> module_base;
+    int module_base[512];
+    int module_count;
 
     Parser(char*);
 
@@ -51,4 +53,7 @@ public:
     void check_used();
 
     void close();
+    
+    // test func
+    void print_save();
 };

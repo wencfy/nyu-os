@@ -54,10 +54,9 @@ void pass1(Parser *parser) {
 
             // printf("%c: %d\n", address_mode, oprand);
         }
-
         // Store the base address for next module
-        parser->module_base.push_back(total_ins_count);
-
+        parser->module_base[module_count] = total_ins_count;
+        parser->module_count = module_count;
         parser->check_symbol_address(module_count);
     }
     
@@ -79,7 +78,7 @@ void pass2(Parser *parser) {
             string symbol = parser->read_symbol();
             int val = parser->read_int(false);
         }
-
+        
         std::vector<pair<std::string, bool>> use_list;
         int use_count = parser->read_int(false);
         for (int i = 0; i < use_count; i++) {
@@ -97,8 +96,7 @@ void pass2(Parser *parser) {
             int operand = ins_code % 1000;
             
             int cur_no = parser->module_base[module_count - 1] + i;
-            std::string address = "%03d: %d%03d";
-            std::string message;
+            std::string message = "";
 
             if (opcode >= 10) {
                 message = " Error: Illegal opcode; treated as 9999\n";
@@ -107,13 +105,12 @@ void pass2(Parser *parser) {
             } else {
                 switch (address_mode) {
                     case 'M': {
-                        int module_count = parser->module_base.size() - 1;
+                        int module_count = parser->module_count;
                         if (operand < module_count) {
                             operand = parser->module_base[operand];
-                            message = "\n";
                         } else {
                             operand = 0;
-                            message = " Error: Illegal module operand; treated as module=0\n";
+                            message = " Error: Illegal module operand; treated as module=0";
                         }
                     }
                     break;
@@ -121,10 +118,9 @@ void pass2(Parser *parser) {
                     case 'A': {
                         if (operand < 512) {
                             // do nothing
-                            message = "\n";
                         } else {
                             operand = 0;
-                            message = " Error: Absolute address exceeds machine size; zero used\n";
+                            message = " Error: Absolute address exceeds machine size; zero used";
                         }
                     }
                     break;
@@ -133,10 +129,9 @@ void pass2(Parser *parser) {
                         int module_size = parser->module_base[module_count] - parser->module_base[module_count - 1];
                         if (operand < module_size) {
                             operand += parser->module_base[module_count - 1];
-                            message = "\n";
                         } else {
                             operand = parser->module_base[module_count - 1];
-                            message = " Error: Relative address exceeds module size; relative zero used\n";
+                            message = " Error: Relative address exceeds module size; relative zero used";
                         }
                     }
                     break;
@@ -144,10 +139,9 @@ void pass2(Parser *parser) {
                     case 'I': {
                         if (operand < 900) {
                             // do nothing
-                            message = "\n";
                         } else {
                             operand = 999;
-                            message = " Error: Illegal immediate operand; treated as 999\n";
+                            message = " Error: Illegal immediate operand; treated as 999";
                         }
                     }
                     break;
@@ -159,21 +153,20 @@ void pass2(Parser *parser) {
                             int address = parser->get_symbol_address(symbol);
                             if (address != -1) {
                                 operand = address;
-                                message = "\n";
                             } else {
                                 operand = 0;
-                                message = " Error: " + symbol + " is not defined; zero used\n";
+                                message = " Error: " + symbol + " is not defined; zero used";
                             }
                         } else {
                             operand = parser->module_base[module_count - 1];
-                            message = " Error: External operand exceeds length of uselist; treated as relative=0\n";
+                            message = " Error: External operand exceeds length of uselist; treated as relative=0";
                         }
                     }
                     break;
                 }
             }
 
-            printf((address + message).c_str(), cur_no, opcode, operand);
+            printf("%03d: %d%03d%s\n", cur_no, opcode, operand, message.c_str());
         }
 
         for (int i = 0; i < use_list.size(); i++) {

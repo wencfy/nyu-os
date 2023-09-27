@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include "string.h"
 
 void Parser::__parse_error(int errcode) {
     static const char* errstr[] = {
@@ -23,20 +24,21 @@ int isMARIE(char token) {
 }
 
 Parser::Parser(char *path) {
-    this->path = (char *) malloc(strlen(path) * sizeof(char));
+    this->path = (char *) malloc((strlen(path) + 1) * sizeof(char));
     strcpy(this->path, path);
     in.open(path);
 
     line_num = 0;
     line_offset = 0;
     save = (char**) malloc(sizeof(char*));
-    module_base.push_back(0);
+    module_base[0] = 0;
+    module_count = 0;
 };
 
 char* Parser::get_token() {
     const char sep[] = " \t\n";
 
-    if (*save == nullptr) {
+    if (*save == nullptr || !strlen(*save)) {
         if (in) {
             std::string line;
             do {
@@ -51,7 +53,7 @@ char* Parser::get_token() {
                 line.erase(line.find_last_not_of(sep) + 1);
             } while (!line.length() && in);
 
-            *save = (char*) malloc(line.length() * sizeof(char));
+            *save = (char*) malloc((line.length() + 1) * sizeof(char));
 
             strcpy(*save, line.c_str());
 
@@ -68,6 +70,7 @@ char* Parser::get_token() {
         line_num++;
     }
 
+    // printf("%s --- save: %s\n", token, *save);
     return token;
 }
 
@@ -81,13 +84,16 @@ int Parser::read_int(bool nullable) {
         // NUM_EXPECTED: nothing provided
         __parse_error(0);
     }
+
+    int ret = 0;
     for (int i = 0; *(token + i); i++) {
         if (!isdigit(token[i])) {
             // NUM_EXPECTED: not a digit
             __parse_error(0);
         }
+        ret = ret * 10 + (*(token + i) - '0');
     }
-    return std::stoi(token);
+    return ret;
 }
 
 std::string Parser::read_symbol() {
@@ -104,8 +110,10 @@ std::string Parser::read_symbol() {
             __parse_error(1);
         }
     }
-    char *token_cp = (char*) malloc(strlen(token) * sizeof(char));
-    std::string symbol(token);
+
+    char* token_cp = (char*) malloc((strlen(token) + 1) * sizeof(char));
+    strcpy(token_cp, token);
+    std::string symbol = token_cp;
     if (symbol.length() > 16) {
         // SYM_TOO_LONG
         __parse_error(3);
@@ -161,8 +169,10 @@ bool Parser::eof() {
 }
 
 void Parser::refresh() {
-    this->in.close();
-    this->in.open(this->path);
+    // this->in.close();
+    // this->in.open(this->path);
+    this->in.clear();
+    this->in.seekg(0, std::ios::beg);
 }
 
 void Parser::print_symbol_table() {
@@ -183,7 +193,7 @@ void Parser::check_symbol_address(int module) {
         if ((*it).module == module) {
             int r_address = (*it).address - module_base[module - 1];
             if (r_address > ins_count) {
-                printf("Warning: Module %d: ab too big %d (max=%d) assume zero relative\n", module, r_address, ins_count);
+                printf("Warning: Module %d: %s too big %d (max=%d) assume zero relative\n", module, (*it).value.c_str(), r_address, ins_count);
                 (*it).address = module_base[module - 1];
             }
         }
@@ -210,4 +220,8 @@ void Parser::check_used() {
 
 void Parser::close() {
     in.close();
+}
+
+void Parser::print_save() {
+    printf("print save --- %s\n", *save);
 }
