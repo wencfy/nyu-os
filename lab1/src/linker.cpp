@@ -99,7 +99,7 @@ void pass2(Parser *parser) {
             std::string message = "";
 
             if (opcode >= 10) {
-                message = " Error: Illegal opcode; treated as 9999\n";
+                message = " Error: Illegal opcode; treated as 9999";
                 opcode = 9;
                 operand = 999;
             } else {
