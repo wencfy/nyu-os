@@ -110,7 +110,7 @@ void pass2(Parser *parser) {
                             operand = parser->module_base[operand];
                         } else {
                             operand = 0;
-                            message = " Error: Illegal module operand; treated as module=0";
+                            message = " Error: Illegal module operand ; treated as module=0";
                         }
                     }
                     break;
