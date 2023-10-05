@@ -17,7 +17,7 @@ public:
 };
 
 class Scheduler {
-private:
+protected:
     std::deque<Process*> process_queue;
     
 public:

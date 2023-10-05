@@ -26,4 +26,6 @@ public:
     Event *get_event();
     void put_event(Event *event);
     void print_events();
+
+    int get_next_event_time();
 };
