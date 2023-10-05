@@ -8,6 +8,7 @@ Public
 !*/src/*.cpp
 !*/src/*.hpp
 !*/src/Makefile
+!*/src/rfile
 
 */deprecated
 lab1/lab1_assign
