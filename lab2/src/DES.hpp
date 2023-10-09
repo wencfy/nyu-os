@@ -7,6 +7,8 @@ enum STATE {
     BLOCKED,
 };
 
+std::string state_to_string(STATE s);
+
 class Event {
 public:
     int timestamp;

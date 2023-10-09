@@ -1,11 +1,24 @@
 #include "DES.hpp"
 
+std::string state_to_string(STATE s) {
+    switch (s) {
+    case CREATED:
+        return "CREATED";
+    case READY:
+        return "READY";
+    case RUNNING:
+        return "RUNNING";
+    case BLOCKED:
+        return "BLOCKED";
+    }
+}
+
 Event::Event(int timestamp, Process *process, STATE old_state, STATE new_state) :
     timestamp(timestamp), process(process), old_state(old_state), new_state(new_state) {}
 
 std::string Event::to_string() {
-    std::string ret("Event: ");
-    ret += std::to_string(timestamp) + " " + std::to_string(old_state) + " " + std::to_string(new_state);
+    std::string ret("Event, time: ");
+    ret += std::to_string(timestamp) + " process: " + std::to_string(process->no) + " old: " + state_to_string(old_state) + " new: " + state_to_string(new_state);
     return ret;
 }
 

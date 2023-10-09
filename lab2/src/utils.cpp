@@ -2,7 +2,7 @@
 
 class Util {
 private:
-    const char path[12] = "./rfile.txt";
+    const char path[8] = "./rfile";
     std::fstream in;
 public:
     Util() {
@@ -10,7 +10,7 @@ public:
     }
 
     int rand() {
-        char line[128];
+        char line[128] = "";
         in.getline(line, 128);
         return std::stoi(line);
     }
