@@ -1,18 +1,27 @@
 #include "fstream"
+#include "vector"
 
 class Util {
 private:
-    const char path[8] = "./rfile";
-    std::fstream in;
+    std::vector<int> random_values;
+    int offset = 0;
 public:
-    Util() {
-        in.open(path);
+    Util(const std::string path) {
+        offset = 0;
+        std::ifstream ifs(path);
+        int n;
+        // read the count
+        ifs >> n;
+        while (ifs >> n) {
+            random_values.push_back(n);
+        }
     }
 
     int rand() {
-        char line[128] = "";
-        in.getline(line, 128);
-        return std::stoi(line);
+        if (offset == random_values.size()) {
+            offset = 0;
+        }
+        return random_values[offset++];
     }
 
     int rand(int num) {

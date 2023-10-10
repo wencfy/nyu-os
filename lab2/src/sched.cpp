@@ -5,7 +5,7 @@
 #include "utils.cpp"
 using namespace std;
 
-Util *util = new Util();
+Util *util = new Util("./rfile");
 bool CALL_SCHEDULER = false;
 Process *CURRENT_RUNNING_PROCESS = nullptr;
 
