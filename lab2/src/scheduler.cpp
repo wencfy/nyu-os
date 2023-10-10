@@ -1,9 +1,10 @@
 #include "scheduler.hpp"
 
-Process::Process(int no, int AT, int TC, int CB, int IO):
-no(no), AT(AT), TC(TC), CB(CB), IO(IO) {
+Process::Process(int no, int AT, int TC, int CB, int IO, int static_priority):
+no(no), AT(AT), TC(TC), CB(CB), IO(IO), static_priority(static_priority) {
     rem = TC;
     priority = 1;
+    state_trans_time = 0;
 }
 
 std::string Process::to_string() {

@@ -14,4 +14,8 @@ public:
         in.getline(line, 128);
         return std::stoi(line);
     }
+
+    int rand(int num) {
+        return rand() % num + 1;
+    }
 };

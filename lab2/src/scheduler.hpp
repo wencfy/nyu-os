@@ -18,8 +18,10 @@ public:
     int io_burst;
     int rem;
     int priority;
+    int static_priority;
+    int state_trans_time;
 
-    Process(int no, int AT, int TC, int CB, int IO);
+    Process(int no, int AT, int TC, int CB, int IO, int static_priority);
     std::string to_string();
 };
 

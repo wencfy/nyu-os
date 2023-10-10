@@ -12,23 +12,28 @@ Process *CURRENT_RUNNING_PROCESS = nullptr;
 void Simulation(DES *des, Scheduler *sched) {
     Event *evt;
     while ((evt = des->get_event())) {
-        printf("\n\n\n");
-        printf("%s\n***\n", evt->to_string().c_str());
+        printf("\n");
+
         des->print_events();
         Process *process = evt->process;
         int current_time = evt->timestamp;
         STATE old_state = evt->old_state;
         STATE new_state = evt->new_state;
         // TODO: calculate time.
-        // int time_in_prev_state = current_time - process.
+        int time_in_prev_state = current_time - process->state_trans_time;
+        process->state_trans_time = current_time;
+
+        printf("%d %d %d: %s -> %s", current_time, process->no, time_in_prev_state, state_to_string(old_state).c_str(), state_to_string(new_state).c_str());
 
         delete evt;
         evt = nullptr;
 
         switch (new_state) {
             case READY: {
+                printf("\n");
                 if (old_state == BLOCKED || old_state == CREATED) {
                     // trans to ready
+                    process->priority = process->static_priority - 1;
                     sched->add_process(process);
                 } else if (old_state == RUNNING) {
                     // trans to preemption
@@ -43,8 +48,11 @@ void Simulation(DES *des, Scheduler *sched) {
                 // create event for either preemption or blocking
                 int cpu_burst = CURRENT_RUNNING_PROCESS->cpu_burst > 0 ?
                                 CURRENT_RUNNING_PROCESS->cpu_burst :
-                                util->rand() % process->CB + 1;
+                                util->rand(process->CB);
                 cpu_burst = cpu_burst > CURRENT_RUNNING_PROCESS->rem ? CURRENT_RUNNING_PROCESS->rem : cpu_burst;
+
+                // VERBOSE
+                printf(" cb=%d rem=%d prio=%d\n", cpu_burst, process->rem, process->priority);
 
                 if (cpu_burst > sched->quantum) {
                     process->rem -= sched->quantum;
@@ -62,7 +70,7 @@ void Simulation(DES *des, Scheduler *sched) {
                     process->cpu_burst = 0;
                     int until = current_time + cpu_burst;
                     Event *e = new Event(
-                        current_time + process->cpu_burst,
+                        until,
                         process,
                         new_state,
                         BLOCKED
@@ -75,16 +83,22 @@ void Simulation(DES *des, Scheduler *sched) {
             case BLOCKED: {
                 // trans to block
                 // create an event for when process becomes READY again
-                process->io_burst = util->rand() % process->IO + 1;
-                process->rem -= process->cpu_burst;
+                int io_burst = process->rem > 0 ?
+                               util->rand(process->IO) : 0;
+
+                // VERBOSE
+                printf(" ib=%d rem=%d\n", io_burst, process->rem);
+
                 if (process->rem > 0) {
                     Event *e = new Event(
-                        current_time + process->io_burst,
+                        current_time + io_burst,
                         process,
                         new_state,
                         READY
                     );
                     des->put_event(e);
+                } else {
+                    // process done
                 }
                 CURRENT_RUNNING_PROCESS = nullptr;
                 CALL_SCHEDULER = true;
@@ -97,16 +111,13 @@ void Simulation(DES *des, Scheduler *sched) {
 
         if (CALL_SCHEDULER) {
             if (des->get_next_event_time() == current_time) {
-                printf("continue\n");
                 continue;
             }
             CALL_SCHEDULER = false;
-            printf("%p\n", CURRENT_RUNNING_PROCESS);
             if (CURRENT_RUNNING_PROCESS == nullptr) {
                 sched->print_process_queue();
 
                 CURRENT_RUNNING_PROCESS = sched->get_next_process();
-                printf("%s\n", CURRENT_RUNNING_PROCESS->to_string());
                 if (CURRENT_RUNNING_PROCESS == nullptr) {
                     continue;
                 }
@@ -141,7 +152,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        Process *p = new Process(no++, arr[0], arr[1], arr[2], arr[3]);
+        Process *p = new Process(no++, arr[0], arr[1], arr[2], arr[3], util->rand(4));
         Event *e = new Event(
             p->AT,
             p,
