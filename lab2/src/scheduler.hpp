@@ -21,23 +21,29 @@ public:
     int static_priority;
     int state_trans_time;
 
+    int io_time;
+    int cpu_waiting_time;
+    int finish_time;
+
     Process(int no, int AT, int TC, int CB, int IO, int static_priority);
     std::string to_string();
 };
 
 class Scheduler {
-public:
-    int quantum;
-
+private:
+    std::list<Process*> finished_queue;
 protected:
     std::deque<Process*> process_queue;
     
 public:
+    int quantum;
     virtual void add_process(Process *p) = 0;
     virtual Process *get_next_process() = 0;
     virtual bool test_preempt(Process *p) = 0;
 
     void print_process_queue();
+    void statistics();
+    void finish(Process *p, int finish_time);
 };
 
 class FCFSScheduler: public Scheduler {
@@ -47,3 +53,20 @@ public:
     Process *get_next_process();
     bool test_preempt(Process *p);
 };
+
+class LCFSscheduler: public Scheduler {
+public:
+    LCFSscheduler();
+    void add_process(Process *p);
+    Process *get_next_process();
+    bool test_preempt(Process *p);
+};
+
+class SRTFScheduler: public Scheduler {
+public:
+    SRTFScheduler();
+    void add_process(Process *p);
+    Process *get_next_process();
+    bool test_preempt(Process *p);
+};
+

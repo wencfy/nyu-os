@@ -85,7 +85,7 @@ void Simulation(DES *des, Scheduler *sched) {
                 // create an event for when process becomes READY again
                 int io_burst = process->rem > 0 ?
                                util->rand(process->IO) : 0;
-
+                process->io_time += io_burst;
                 // VERBOSE
                 printf(" ib=%d rem=%d\n", io_burst, process->rem);
 
@@ -98,7 +98,8 @@ void Simulation(DES *des, Scheduler *sched) {
                     );
                     des->put_event(e);
                 } else {
-                    // process done
+                    // finish process
+                    sched->finish(process, current_time);
                 }
                 CURRENT_RUNNING_PROCESS = nullptr;
                 CALL_SCHEDULER = true;
@@ -121,12 +122,14 @@ void Simulation(DES *des, Scheduler *sched) {
                 if (CURRENT_RUNNING_PROCESS == nullptr) {
                     continue;
                 }
+                CURRENT_RUNNING_PROCESS->cpu_waiting_time += current_time - CURRENT_RUNNING_PROCESS->state_trans_time;
                 // create event to make this process runnable for same time.
                 Event *e = new Event(current_time, CURRENT_RUNNING_PROCESS, READY, RUNNING);
                 des->put_event(e);
             }
         }
     }
+    sched->statistics();
 }
 
 int main(int argc, char *argv[]) {
@@ -163,7 +166,7 @@ int main(int argc, char *argv[]) {
     }
     in.close();
 
-    FCFSScheduler *s = new FCFSScheduler();
+    Scheduler *s = new SRTFScheduler();
     Simulation(des, s);
 
     return 0;
