@@ -7,7 +7,6 @@ using namespace std;
 
 Util *util = new Util("./rfile");
 bool CALL_SCHEDULER = false;
-Process *CURRENT_RUNNING_PROCESS = nullptr;
 
 void Simulation(DES *des, Scheduler *sched) {
     Event *evt;
@@ -51,10 +50,10 @@ void Simulation(DES *des, Scheduler *sched) {
             case RUNNING: {
                 // trans to run
                 // create event for either preemption or blocking
-                int cpu_burst = CURRENT_RUNNING_PROCESS->cpu_burst > 0 ?
-                                CURRENT_RUNNING_PROCESS->cpu_burst :
+                int cpu_burst = sched->get_current_process()->cpu_burst > 0 ?
+                                sched->get_current_process()->cpu_burst :
                                 util->rand(process->CB);
-                cpu_burst = cpu_burst > CURRENT_RUNNING_PROCESS->rem ? CURRENT_RUNNING_PROCESS->rem : cpu_burst;
+                cpu_burst = cpu_burst > sched->get_current_process()->rem ? sched->get_current_process()->rem : cpu_burst;
                 process->cpu_waiting_time += time_in_prev_state;
                 // VERBOSE
                 printf(" cb=%d rem=%d prio=%d\n", cpu_burst, process->rem, process->priority);
@@ -106,7 +105,7 @@ void Simulation(DES *des, Scheduler *sched) {
                     // finish process
                     sched->finish(process, current_time);
                 }
-                CURRENT_RUNNING_PROCESS = nullptr;
+                sched->set_current_process(nullptr);
                 CALL_SCHEDULER = true;
             }
             break;
@@ -120,15 +119,15 @@ void Simulation(DES *des, Scheduler *sched) {
                 continue;
             }
             CALL_SCHEDULER = false;
-            if (CURRENT_RUNNING_PROCESS == nullptr) {
+            if (sched->get_current_process() == nullptr) {
                 sched->print_process_queue();
 
-                CURRENT_RUNNING_PROCESS = sched->get_next_process();
-                if (CURRENT_RUNNING_PROCESS == nullptr) {
+                sched->set_current_process(sched->get_next_process());
+                if (sched->get_current_process() == nullptr) {
                     continue;
                 }
                 // create event to make this process runnable for same time.
-                Event *e = new Event(current_time, CURRENT_RUNNING_PROCESS, READY, RUNNING);
+                Event *e = new Event(current_time, sched->get_current_process(), READY, RUNNING);
                 des->put_event(e);
             }
         }

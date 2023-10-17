@@ -33,6 +33,8 @@ class Scheduler {
 private:
     std::list<Process*> finished_queue;
 
+    Process *current_running_process = nullptr;
+
     int total_io_time;
     int total_io_process_count;
     int io_start_time;
@@ -45,6 +47,8 @@ public:
     virtual Process *get_next_process() = 0;
     virtual bool test_preempt(Process *p) = 0;
 
+    Process *get_current_process();
+    void set_current_process(Process *process);
     void print_process_queue();
     void statistics();
     void finish(Process *p, int finish_time);

@@ -14,6 +14,14 @@ std::string Process::to_string() {
      + std::to_string(cpu_burst) + " iob: " + std::to_string(io_burst);
 }
 
+Process *Scheduler::get_current_process() {
+    return current_running_process;
+}
+
+void Scheduler::set_current_process(Process *process) {
+    current_running_process = process;
+}
+
 void Scheduler::print_process_queue() {
     for (Process *process: process_queue) {
         printf("%s\n", process->to_string().c_str());
