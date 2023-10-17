@@ -35,6 +35,7 @@ void Simulation(DES *des, Scheduler *sched) {
                     // trans to ready
                     if (old_state == BLOCKED) {
                         process->io_time += time_in_prev_state;
+                        sched->finish_io(current_time);
                     }
 
                     process->priority = process->static_priority - 1;
@@ -100,6 +101,7 @@ void Simulation(DES *des, Scheduler *sched) {
                         READY
                     );
                     des->put_event(e);
+                    sched->start_io(current_time);
                 } else {
                     // finish process
                     sched->finish(process, current_time);

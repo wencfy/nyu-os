@@ -47,6 +47,7 @@ void Scheduler::statistics() {
         avg_wait_time += p->cpu_waiting_time;
     }
     cpu_util = cpu_util * 100 / max_finish_time;
+    io_util = total_io_time * 100.0 / max_finish_time;
     avg_turn_around /= total_count;
     avg_wait_time /= total_count;
     throughput = 100.0 * total_count / max_finish_time;
@@ -71,6 +72,22 @@ void Scheduler::finish(Process *p, int finish_time) {
         }
     }
     finished_queue.insert(it, p);
+}
+
+void Scheduler::start_io(int current_time) {
+    total_io_process_count++;
+    if (total_io_process_count == 1) {
+        // just started io
+        io_start_time = current_time;
+    }
+}
+
+void Scheduler::finish_io(int current_time) {
+    total_io_process_count--;
+    if (total_io_process_count == 0) {
+        // just finished io
+        total_io_time += current_time - io_start_time;
+    }
 }
 
 

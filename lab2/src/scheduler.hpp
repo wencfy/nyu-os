@@ -32,6 +32,10 @@ public:
 class Scheduler {
 private:
     std::list<Process*> finished_queue;
+
+    int total_io_time;
+    int total_io_process_count;
+    int io_start_time;
 protected:
     std::deque<Process*> process_queue;
     
@@ -44,6 +48,10 @@ public:
     void print_process_queue();
     void statistics();
     void finish(Process *p, int finish_time);
+
+    // calculate total_io_time functions
+    void start_io(int current_time);
+    void finish_io(int current_time);
 };
 
 class FCFSScheduler: public Scheduler {
