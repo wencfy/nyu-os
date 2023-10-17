@@ -43,6 +43,7 @@ protected:
     
 public:
     int quantum;
+    bool prio_preempt;
     virtual void add_process(Process *p) = 0;
     virtual Process *get_next_process() = 0;
     virtual bool test_preempt(Process *p) = 0;

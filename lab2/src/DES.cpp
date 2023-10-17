@@ -46,6 +46,25 @@ void DES::print_events() {
     }
 }
 
+Event *DES::get_event(int pid) {
+    for (auto it = event_queue.begin(); it != event_queue.end(); it++) {
+        if ((*it)->process->no == pid) {
+            return (*it);
+        }
+    }
+    return nullptr;
+}
+
+void DES::remove_event(int pid) {
+    auto it = event_queue.begin();
+    for (; it != event_queue.end(); it++) {
+        if ((*it)->process->no == pid) {
+            break;
+        }
+    }
+    event_queue.erase(it);
+}
+
 int DES::get_next_event_time() {
     Event *e = event_queue.front();
     return e ? e->timestamp : -1;

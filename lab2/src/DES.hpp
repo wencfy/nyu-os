@@ -29,5 +29,8 @@ public:
     void put_event(Event *event);
     void print_events();
 
+    Event *get_event(int pid);
+    void remove_event(int pid);
+
     int get_next_event_time();
 };

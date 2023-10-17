@@ -39,8 +39,33 @@ void Simulation(DES *des, Scheduler *sched) {
 
                     process->priority = process->static_priority - 1;
                     sched->add_process(process);
+
+                    Process *current_running_process = sched->get_current_process();
+                    if (sched->prio_preempt && current_running_process) {
+                        // priority preemption
+                        Event *pending_event = des->get_event(current_running_process->no);
+                        bool preempt = pending_event->timestamp > current_time && process->priority > current_running_process->priority;
+
+                        // VERBOSE
+
+                        if (preempt) {
+                            current_running_process->rem += pending_event->timestamp - current_time;
+                            current_running_process->cpu_burst += pending_event->timestamp - current_time;
+                            des->remove_event(current_running_process->no);
+
+                            Event *event = new Event(
+                                current_time,
+                                current_running_process,
+                                RUNNING,
+                                READY
+                            );
+                            des->put_event(event);
+                        }
+                    }
                 } else if (old_state == RUNNING) {
                     // trans to preemption
+                    process->priority--;
+                    sched->set_current_process(nullptr);
                     sched->add_process(process);
                 }
                 CALL_SCHEDULER = true;
@@ -59,6 +84,7 @@ void Simulation(DES *des, Scheduler *sched) {
                 printf(" cb=%d rem=%d prio=%d\n", cpu_burst, process->rem, process->priority);
 
                 if (cpu_burst > sched->quantum) {
+                    // quantum preemption
                     process->rem -= sched->quantum;
                     process->cpu_burst = cpu_burst - sched->quantum;
                     int until = current_time + sched->quantum;
