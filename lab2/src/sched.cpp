@@ -19,7 +19,7 @@ void Simulation(DES *des, Scheduler *sched) {
         int current_time = evt->timestamp;
         STATE old_state = evt->old_state;
         STATE new_state = evt->new_state;
-        // TODO: calculate time.
+
         int time_in_prev_state = current_time - process->state_trans_time;
         process->state_trans_time = current_time;
 
@@ -33,6 +33,10 @@ void Simulation(DES *des, Scheduler *sched) {
                 printf("\n");
                 if (old_state == BLOCKED || old_state == CREATED) {
                     // trans to ready
+                    if (old_state == BLOCKED) {
+                        process->io_time += time_in_prev_state;
+                    }
+
                     process->priority = process->static_priority - 1;
                     sched->add_process(process);
                 } else if (old_state == RUNNING) {
@@ -50,7 +54,7 @@ void Simulation(DES *des, Scheduler *sched) {
                                 CURRENT_RUNNING_PROCESS->cpu_burst :
                                 util->rand(process->CB);
                 cpu_burst = cpu_burst > CURRENT_RUNNING_PROCESS->rem ? CURRENT_RUNNING_PROCESS->rem : cpu_burst;
-
+                process->cpu_waiting_time += time_in_prev_state;
                 // VERBOSE
                 printf(" cb=%d rem=%d prio=%d\n", cpu_burst, process->rem, process->priority);
 
@@ -85,7 +89,6 @@ void Simulation(DES *des, Scheduler *sched) {
                 // create an event for when process becomes READY again
                 int io_burst = process->rem > 0 ?
                                util->rand(process->IO) : 0;
-                process->io_time += io_burst;
                 // VERBOSE
                 printf(" ib=%d rem=%d\n", io_burst, process->rem);
 
@@ -122,7 +125,6 @@ void Simulation(DES *des, Scheduler *sched) {
                 if (CURRENT_RUNNING_PROCESS == nullptr) {
                     continue;
                 }
-                CURRENT_RUNNING_PROCESS->cpu_waiting_time += current_time - CURRENT_RUNNING_PROCESS->state_trans_time;
                 // create event to make this process runnable for same time.
                 Event *e = new Event(current_time, CURRENT_RUNNING_PROCESS, READY, RUNNING);
                 des->put_event(e);

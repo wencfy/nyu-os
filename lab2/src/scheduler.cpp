@@ -21,11 +21,14 @@ void Scheduler::print_process_queue() {
 }
 
 void Scheduler::statistics() {
-    int total_num = finished_queue.size();
-    int finish_time = 0;
-    int turn_around_time = 0;
-    int io_time = 0;
-    int cpu_wait_time = 0;
+    int total_count = finished_queue.size();
+    int max_finish_time = 0;
+    double cpu_util = 0;
+    double io_util = 0;
+    double avg_turn_around = 0;
+    double avg_wait_time = 0;
+    double throughput;
+
     while (!finished_queue.empty()) {
         Process *p = finished_queue.front();
         finished_queue.pop_front();
@@ -34,7 +37,27 @@ void Scheduler::statistics() {
             p->no, p->AT, p->TC, p->CB, p->IO, p->static_priority,
             p->finish_time, p->finish_time - p->AT, p->io_time, p->cpu_waiting_time
         );
+
+        if (max_finish_time < p->finish_time) {
+            max_finish_time = p->finish_time;
+        }
+
+        cpu_util += p->TC;
+        avg_turn_around += p->finish_time - p->AT;
+        avg_wait_time += p->cpu_waiting_time;
     }
+    cpu_util = cpu_util * 100 / max_finish_time;
+    avg_turn_around /= total_count;
+    avg_wait_time /= total_count;
+    throughput = 100.0 * total_count / max_finish_time;
+
+    printf("SUM: %d %.2lf %.2lf %.2lf %.2lf %.3lf\n",
+	       max_finish_time,
+	       cpu_util,
+	       io_util,
+	       avg_turn_around,
+	       avg_wait_time,
+	       throughput);
 }
 
 void Scheduler::finish(Process *p, int finish_time) {
