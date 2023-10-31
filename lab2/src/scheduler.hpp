@@ -1,6 +1,7 @@
 #include "list"
 #include "deque"
 #include "string"
+#include "vector"
 
 class Process {
 public:

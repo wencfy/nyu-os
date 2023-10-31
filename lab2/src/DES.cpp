@@ -35,6 +35,9 @@ void DES::put_event(Event *event) {
 }
 
 Event *DES::get_event() {
+    if (event_queue.empty()) {
+        return nullptr;
+    }
     Event *e = event_queue.front();
     event_queue.pop_front();
     return e;
@@ -66,6 +69,9 @@ void DES::remove_event(int pid) {
 }
 
 int DES::get_next_event_time() {
+    if (event_queue.empty()) {
+        return -1;
+    }
     Event *e = event_queue.front();
-    return e ? e->timestamp : -1;
+    return e->timestamp;
 }

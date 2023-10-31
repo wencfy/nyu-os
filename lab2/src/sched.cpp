@@ -1,5 +1,6 @@
 #include "iostream"
 #include "fstream"
+#include "string.h"
 
 #include "DES.hpp"
 #include "utils.cpp"
