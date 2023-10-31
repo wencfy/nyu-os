@@ -38,15 +38,16 @@ private:
     int total_io_time;
     int total_io_process_count;
     int io_start_time;
+
 protected:
+    std::string type;
     std::deque<Process*> process_queue;
     
 public:
     int quantum;
-    bool prio_preempt;
+    bool prio_preempt = false;
     virtual void add_process(Process *p) = 0;
     virtual Process *get_next_process() = 0;
-    virtual bool test_preempt(Process *p) = 0;
 
     Process *get_current_process();
     void set_current_process(Process *process);
@@ -62,9 +63,9 @@ public:
 class FCFSScheduler: public Scheduler {
 public:
     FCFSScheduler();
+    FCFSScheduler(int quantum);
     void add_process(Process *p);
     Process *get_next_process();
-    bool test_preempt(Process *p);
 };
 
 class LCFSscheduler: public Scheduler {
@@ -72,7 +73,6 @@ public:
     LCFSscheduler();
     void add_process(Process *p);
     Process *get_next_process();
-    bool test_preempt(Process *p);
 };
 
 class SRTFScheduler: public Scheduler {
@@ -80,6 +80,14 @@ public:
     SRTFScheduler();
     void add_process(Process *p);
     Process *get_next_process();
-    bool test_preempt(Process *p);
 };
 
+class PRIOScheduler: public Scheduler {
+private:
+    std::vector<std::deque<Process*>> active;
+    std::vector<std::deque<Process*>> expired;
+public:
+    PRIOScheduler(int quantum, int maxprio, bool prio_preempt);
+    void add_process(Process *p);
+    Process *get_next_process();
+};

@@ -5,15 +5,22 @@
 #include "utils.cpp"
 using namespace std;
 
-Util *util = new Util("./rfile");
-bool CALL_SCHEDULER = false;
+Util *util;
+bool _call_scheduler = false;
+
+bool _verbose = false;
+bool _verbose_trace = false;
+bool _verbose_event_queue = false;
+bool _verbose_preempt = false;
+
 
 void Simulation(DES *des, Scheduler *sched) {
     Event *evt;
     while ((evt = des->get_event())) {
-        printf("\n");
+        if (_verbose) {
+            des->print_events();
+        }
 
-        des->print_events();
         Process *process = evt->process;
         int current_time = evt->timestamp;
         STATE old_state = evt->old_state;
@@ -22,14 +29,15 @@ void Simulation(DES *des, Scheduler *sched) {
         int time_in_prev_state = current_time - process->state_trans_time;
         process->state_trans_time = current_time;
 
-        printf("%d %d %d: %s -> %s", current_time, process->no, time_in_prev_state, state_to_string(old_state).c_str(), state_to_string(new_state).c_str());
+        if (_verbose) {
+            printf("%d %d %d: %s -> %s", current_time, process->no, time_in_prev_state, state_to_string(old_state).c_str(), state_to_string(new_state).c_str());
+        }
 
         delete evt;
         evt = nullptr;
 
         switch (new_state) {
             case READY: {
-                printf("\n");
                 if (old_state == BLOCKED || old_state == CREATED) {
                     // trans to ready
                     if (old_state == BLOCKED) {
@@ -68,7 +76,7 @@ void Simulation(DES *des, Scheduler *sched) {
                     sched->set_current_process(nullptr);
                     sched->add_process(process);
                 }
-                CALL_SCHEDULER = true;
+                _call_scheduler = true;
             }
             break;
         
@@ -81,7 +89,9 @@ void Simulation(DES *des, Scheduler *sched) {
                 cpu_burst = cpu_burst > sched->get_current_process()->rem ? sched->get_current_process()->rem : cpu_burst;
                 process->cpu_waiting_time += time_in_prev_state;
                 // VERBOSE
-                printf(" cb=%d rem=%d prio=%d\n", cpu_burst, process->rem, process->priority);
+                if (_verbose) {
+                    printf(" cb=%d rem=%d prio=%d\n", cpu_burst, process->rem, process->priority);
+                }
 
                 if (cpu_burst > sched->quantum) {
                     // quantum preemption
@@ -116,7 +126,9 @@ void Simulation(DES *des, Scheduler *sched) {
                 int io_burst = process->rem > 0 ?
                                util->rand(process->IO) : 0;
                 // VERBOSE
-                printf(" ib=%d rem=%d\n", io_burst, process->rem);
+                if (_verbose) {
+                    printf(" ib=%d rem=%d\n", io_burst, process->rem);
+                }
 
                 if (process->rem > 0) {
                     Event *e = new Event(
@@ -132,7 +144,7 @@ void Simulation(DES *des, Scheduler *sched) {
                     sched->finish(process, current_time);
                 }
                 sched->set_current_process(nullptr);
-                CALL_SCHEDULER = true;
+                _call_scheduler = true;
             }
             break;
 
@@ -140,13 +152,15 @@ void Simulation(DES *des, Scheduler *sched) {
                 break;
         }
 
-        if (CALL_SCHEDULER) {
+        if (_call_scheduler) {
             if (des->get_next_event_time() == current_time) {
                 continue;
             }
-            CALL_SCHEDULER = false;
+            _call_scheduler = false;
             if (sched->get_current_process() == nullptr) {
-                sched->print_process_queue();
+                if (_verbose) {
+                    sched->print_process_queue();
+                }
 
                 sched->set_current_process(sched->get_next_process());
                 if (sched->get_current_process() == nullptr) {
@@ -162,13 +176,61 @@ void Simulation(DES *des, Scheduler *sched) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <file>\n", argv[0]);
-        exit(EXIT_FAILURE);
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << "[-v] [-t] [-e] [-p] [-s<schedspec>] inputfile randfile" << std::endl;
+        return 1;
     }
 
+    std::vector<string> files;
+    std::string sched;
+    for (int i = 1; i < argc; i++) {
+        if (std::string(argv[i]).substr(0, 2) == "-s") {
+            sched = std::string(argv[i]).substr(2);
+        } else if (std::string(argv[i]) == "-v") {
+            _verbose = true;
+        } else if (std::string(argv[i]) == "-t") {
+            _verbose_trace = true;
+        } else if (std::string(argv[i]) == "-e") {
+            _verbose_event_queue = true;
+        } else if (std::string(argv[i]) == "-p") {
+            _verbose_preempt = true;
+        } else {
+            files.push_back(std::string(argv[i]));
+        }
+    }
     fstream in;
-    in.open(argv[1]);
+    in.open(files[0].c_str());
+    util = new Util(files[1]);
+
+    int quantum;
+    int maxprio = 4;
+    Scheduler *s;
+    if (sched == "F") {
+        s = new FCFSScheduler();
+    } else if (sched == "L") {
+        s = new LCFSscheduler();
+    } else if (sched == "S") {
+        s = new SRTFScheduler();
+    } else if (sched.substr(0, 1) == "R") {
+        quantum = stoi(sched.substr(1).c_str());
+        s = new FCFSScheduler(quantum);
+    } else if (sched.substr(0, 1) == "P") {
+        if (int idx = sched.find(':') != -1) {
+            quantum = stoi(sched.substr(1, idx).c_str());
+            maxprio = stoi(sched.substr(idx + 2).c_str());
+        } else {
+            quantum = stoi(sched.substr(1).c_str());
+        }
+        s = new PRIOScheduler(quantum, maxprio, false);
+    } else if (sched.substr(0, 1) == "E") {
+        if (int idx = sched.find(':') != -1) {
+            quantum = stoi(sched.substr(1, idx).c_str());
+            maxprio = stoi(sched.substr(idx + 2).c_str());
+        } else {
+            quantum = stoi(sched.substr(1).c_str());
+        }
+        s = new PRIOScheduler(quantum, maxprio, true);
+    }
 
     DES *des = new DES();
     char line[100];
@@ -184,7 +246,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        Process *p = new Process(no++, arr[0], arr[1], arr[2], arr[3], util->rand(4));
+        Process *p = new Process(no++, arr[0], arr[1], arr[2], arr[3], util->rand(maxprio));
         Event *e = new Event(
             p->AT,
             p,
@@ -195,7 +257,6 @@ int main(int argc, char *argv[]) {
     }
     in.close();
 
-    Scheduler *s = new SRTFScheduler();
     Simulation(des, s);
 
     return 0;

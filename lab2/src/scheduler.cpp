@@ -29,6 +29,8 @@ void Scheduler::print_process_queue() {
 }
 
 void Scheduler::statistics() {
+    printf("%s\n", type.c_str());
+
     int total_count = finished_queue.size();
     int max_finish_time = 0;
     double cpu_util = 0;
@@ -104,6 +106,12 @@ void Scheduler::finish_io(int current_time) {
  */
 FCFSScheduler::FCFSScheduler() {
     quantum = 10000;
+    this->type = "FCFS";
+}
+
+FCFSScheduler::FCFSScheduler(int quantum) {
+    this->quantum = quantum;
+    this->type = "RR " + std::to_string(quantum);
 }
 
 void FCFSScheduler::add_process(Process *p) {
@@ -119,16 +127,13 @@ Process *FCFSScheduler::get_next_process() {
     return nullptr;
 }
 
-bool FCFSScheduler::test_preempt(Process *p) {
-    
-}
-
 
 /**
  * LCFSScheduler
  */
 LCFSscheduler::LCFSscheduler() {
     quantum = 10000;
+    this->type = "LCFS";
 }
 
 void LCFSscheduler::add_process(Process *p) {
@@ -144,16 +149,13 @@ Process *LCFSscheduler::get_next_process() {
     return nullptr;
 }
 
-bool LCFSscheduler::test_preempt(Process *p) {
-    
-}
-
 
 /**
  * SRTFScheduler
  */
 SRTFScheduler::SRTFScheduler() {
     quantum = 10000;
+    this->type = "SRTF";
 }
 
 void SRTFScheduler::add_process(Process *p) {
@@ -177,6 +179,61 @@ Process *SRTFScheduler::get_next_process() {
     return nullptr;
 }
 
-bool SRTFScheduler::test_preempt(Process *p) {
+
+/**
+ * PRIOScheduler
+ */
+PRIOScheduler::PRIOScheduler(int quantum, int maxprio, bool prio_preempt) {
+    this->quantum = quantum;
+    this->prio_preempt = prio_preempt;
+    active.resize(maxprio);
+    expired.resize(maxprio);
+    if (prio_preempt) {
+        this->type = "PREPRIO " + std::to_string(quantum);
+    } else {
+        this->type = "PRIO " + std::to_string(quantum);
+    }
+}
+
+void PRIOScheduler::add_process(Process *p) {
+    if (p->priority < 0) {
+        p->priority = p->static_priority - 1;
+        auto idx = expired.size() - p->priority - 1;
+        expired[idx].push_back(p);
+    } else {
+        auto idx = active.size() - p->priority - 1;
+        active[idx].push_back(p);
+    }
+}
+
+Process *PRIOScheduler::get_next_process() {
+    auto it = active.begin();
+    while (it != active.end()) {
+        if (!(it->empty())) {
+            break;
+        }
+        it++;
+    }
+    if (it != active.end()) {
+        Process *p = it->front();
+        it->pop_front();
+        return p;
+    }
+
+    active.swap(expired);
     
+    it = active.begin();
+    while (it != active.end()) {
+        if (!(it->empty())) {
+            break;
+        }
+        it++;
+    }
+    if (it != active.end()) {
+        Process *p = it->front();
+        it->pop_front();
+        return p;
+    }
+
+    return nullptr;
 }
