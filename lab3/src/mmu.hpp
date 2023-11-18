@@ -82,9 +82,32 @@ public:
 
 class FIFOPager: public Pager {
 private:
-    int hand = 0;
+    int hand;
 public:
     FIFOPager();
     unsigned int select_victim_frame();
 };
 
+class RandomPager: public Pager {
+public:
+    RandomPager();
+    unsigned int select_victim_frame();
+};
+
+class ClockPager: public Pager {
+private:
+    int hand;
+public:
+    ClockPager();
+    unsigned int select_victim_frame();
+};
+
+class NRUPager: public Pager {
+private:
+    static const unsigned long reset_cnt = 48;
+    unsigned long last_rst;
+    int hand;
+public:
+    NRUPager();
+    unsigned int select_victim_frame();
+};

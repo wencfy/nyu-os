@@ -98,7 +98,7 @@ void simulation() {
     int operand;
     while (util->get_next_instruction(opcode, operand)) {
         if (option_o) {
-            printf("%lu: ==> %c %d\n", inst_count++, opcode, operand);
+            printf("%lu: ==> %c %d\n", inst_count, opcode, operand);
         }
 
         switch (opcode) {
@@ -202,6 +202,7 @@ void simulation() {
                 }
             }
         }
+        inst_count++;
     }
 }
 
@@ -264,6 +265,21 @@ int main(int argc, char *argv[]) {
                 pager = new FIFOPager();
                 break;
             }
+
+            case 'r': {
+                pager = new RandomPager();
+                break;
+            }
+
+            case 'c': {
+                pager = new ClockPager();
+                break;
+            }
+
+            case 'e': {
+                pager = new NRUPager();
+                break;
+            }
             
             default:
                 break;
@@ -305,4 +321,6 @@ int main(int argc, char *argv[]) {
     simulation();
 
     statistics();
+
+    delete util;
 }

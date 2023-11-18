@@ -6,6 +6,9 @@
 
 extern std::vector<Process*> process_list;
 
+extern std::vector<frame_t> frame_table;
+extern unsigned int num_frames;
+
 class Utils {
 private:
     std::vector<int> random_values;
@@ -70,7 +73,7 @@ public:
     }
 
     int rand(int num) {
-        return rand() % num + 1;
+        return rand() % num;
     }
 
     void init_process_list() {
@@ -91,4 +94,10 @@ public:
         return false;
     }
 
+    pte_t *get_pte_from_frame(int frame) {
+        int pid_reversed = frame_table[frame].pid;
+        int v_page_reversed = frame_table[frame].v_page;
+        pte_t *pte = &process_list[pid_reversed]->page_table[v_page_reversed];
+        return pte;
+    }
 };
