@@ -147,7 +147,8 @@ void simulation() {
                         
                         process_list[current_process]->p_stats.maps++;
                         cost += cost_maps;
-                        // age 
+                        frame_table[pte->p_frame].age = 0;
+                        frame_table[pte->p_frame].time_last_used = inst_count;
                     } else {
                         // vma not valid
                         if (option_o) {
@@ -278,6 +279,16 @@ int main(int argc, char *argv[]) {
 
             case 'e': {
                 pager = new NRUPager();
+                break;
+            }
+
+            case 'a': {
+                pager = new AgingPager();
+                break;
+            }
+
+            case 'w': {
+                pager = new WorkingSetPager();
                 break;
             }
             

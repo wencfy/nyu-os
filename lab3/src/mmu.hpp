@@ -19,7 +19,8 @@ typedef struct {
 typedef struct {
     int pid;
     int v_page;
-    int age;
+    unsigned int age;
+    unsigned int time_last_used;
     bool mapped;
 } frame_t;
 
@@ -109,5 +110,22 @@ private:
     int hand;
 public:
     NRUPager();
+    unsigned int select_victim_frame();
+};
+
+class AgingPager: public Pager {
+private:
+    int hand;
+public:
+    AgingPager();
+    unsigned int select_victim_frame();
+};
+
+class WorkingSetPager: public Pager {
+private:
+    static const unsigned long tau = 49;
+    int hand;
+public:
+    WorkingSetPager();
     unsigned int select_victim_frame();
 };
