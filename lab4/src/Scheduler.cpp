@@ -133,3 +133,34 @@ bool LookScheduler::fetch_task() {
 
     return true;
 }
+
+
+CLookScheduler::CLookScheduler() {}
+
+bool CLookScheduler::fetch_task() {
+    if (io_queue.empty()) {
+        return false;
+    }
+
+    auto start = io_queue.begin();
+    auto r = io_queue.end();
+    for (auto it = io_queue.begin(); it != io_queue.end(); it++) {
+        if (current <= (*it)->track) {
+            if (r == io_queue.end() || (*r)->track > (*it)->track) {
+                r = it;
+            }
+        }
+        if ((*start)->track > (*it)->track) {
+            start = it;
+        }
+    }
+
+    if (r != io_queue.end()) {
+        current_running_io_task = *r;
+        io_queue.erase(r);
+    } else {
+        current_running_io_task = *start;
+        io_queue.erase(start);
+    }
+    return true;
+}

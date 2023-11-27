@@ -74,6 +74,11 @@ int main(int argc, char *argv[]) {
                     sched = new LookScheduler();
                     break;
                 }
+
+                case 'C': {
+                    sched = new CLookScheduler();
+                    break;
+                }
             }
         } else if (std::string(argv[i]).substr(0, 2) == "-v") {
 

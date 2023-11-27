@@ -66,3 +66,9 @@ public:
     LookScheduler();
     bool fetch_task();
 };
+
+class CLookScheduler: public Scheduler {
+public:
+    CLookScheduler();
+    bool fetch_task();
+};
