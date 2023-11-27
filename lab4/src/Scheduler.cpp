@@ -17,7 +17,7 @@ void Scheduler::finish(int timestamp) {
 
     auto iter = finish_queue.begin();
     while (iter != finish_queue.end()) {
-        if (current_running_io_task->request_time > (*iter)->request_time) {
+        if (current_running_io_task->request_time < (*iter)->request_time) {
             break;
         }
         iter++;
@@ -31,13 +31,6 @@ void Scheduler::seek() {
 }
 
 void Scheduler::statistics() {
-    // std::sort(
-    //     io_queue.begin(), io_queue.end(),
-    //     [](io_task *a, io_task *b) {
-    //         return a->request_time < b->request_time;
-    //     }
-    // );
-
     double avg_turn_around = 0.;
     double avg_wait_time = 0.;
     int max_wait_time = 0;
