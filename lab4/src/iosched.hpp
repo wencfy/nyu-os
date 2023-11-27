@@ -58,3 +58,11 @@ public:
     SSTFScheduler();
     bool fetch_task();
 };
+
+class LookScheduler: public Scheduler {
+private:
+    bool dir = true;
+public:
+    LookScheduler();
+    bool fetch_task();
+};

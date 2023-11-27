@@ -89,3 +89,47 @@ bool SSTFScheduler::fetch_task() {
     io_queue.erase(min_it);
     return true;
 }
+
+
+LookScheduler::LookScheduler() {}
+
+bool LookScheduler::fetch_task() {
+    if (io_queue.empty()) {
+        return false;
+    }
+
+    auto l = io_queue.end();
+    auto r = io_queue.end();
+    for (auto it = io_queue.begin(); it != io_queue.end(); it++) {
+        if (current <= (*it)->track) {
+            if (r == io_queue.end() || (*r)->track > (*it)->track) {
+                r = it;
+            }
+        }
+        if (current >= (*it)->track) {
+            if (l == io_queue.end() || (*l)->track < (*it)->track) {
+                l = it;
+            }
+        }
+    }
+    std::list<io_task *>::iterator it;
+    if (dir) {
+        if (r != io_queue.end()) {
+            it = r;
+        } else {
+            dir = !dir;
+            it = l;
+        }
+    } else {
+        if (l != io_queue.end()) {
+            it = l;
+        } else {
+            dir = !dir;
+            it = r;
+        }
+    }
+    current_running_io_task = *it;
+    io_queue.erase(it);
+
+    return true;
+}

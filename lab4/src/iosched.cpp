@@ -69,6 +69,11 @@ int main(int argc, char *argv[]) {
                     sched = new SSTFScheduler();
                     break;
                 }
+
+                case 'L': {
+                    sched = new LookScheduler();
+                    break;
+                }
             }
         } else if (std::string(argv[i]).substr(0, 2) == "-v") {
 
