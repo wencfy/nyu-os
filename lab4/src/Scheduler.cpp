@@ -2,14 +2,7 @@
 #include "algorithm"
 
 void Scheduler::add_task(io_task *task) {
-    auto iter = io_queue.begin();
-    while (iter != io_queue.end()) {
-        if (task->track > (*iter)->track) {
-            break;
-        }
-        iter++;
-    }
-    io_queue.insert(iter, task);
+    io_queue.push_back(task);
 }
 
 void Scheduler::finish(int timestamp) {
@@ -28,6 +21,11 @@ void Scheduler::finish(int timestamp) {
 
 void Scheduler::seek() {
     total_movement++;
+    if (current < current_running_io_task->track) {
+        current++;
+    } else {
+        current--;
+    }
 }
 
 void Scheduler::statistics() {
@@ -57,10 +55,6 @@ void Scheduler::statistics() {
 
 FIFOScheduler::FIFOScheduler() {}
 
-void FIFOScheduler::add_task(io_task *task) {
-    io_queue.push_back(task);
-}
-
 bool FIFOScheduler::fetch_task() {
     if (io_queue.empty()) {
         return false;
@@ -70,11 +64,28 @@ bool FIFOScheduler::fetch_task() {
     return true;
 }
 
-void FIFOScheduler::seek() {
-    Scheduler::seek();
-    if (current < current_running_io_task->track) {
-        current++;
-    } else {
-        current--;
+
+SSTFScheduler::SSTFScheduler() {}
+
+bool SSTFScheduler::fetch_task() {
+    if (io_queue.empty()) {
+        return false;
     }
+
+    auto it = io_queue.begin();
+    auto min_it = io_queue.begin();
+    int min_dis = current > (*min_it)->track ?
+        current - (*min_it)->track : (*min_it)->track - current;
+    while (it != io_queue.end()) {
+        int cur_dis = current > (*it)->track ?
+            current - (*it)->track : (*it)->track - current;
+        if (cur_dis < min_dis) {
+            min_dis = cur_dis;
+            min_it = it;
+        }
+        it++;
+    }
+    current_running_io_task = *min_it;
+    io_queue.erase(min_it);
+    return true;
 }

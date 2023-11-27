@@ -23,11 +23,13 @@ void simulation() {
         if (sched->current_running_io_task && sched->current_running_io_task->track == sched->current) {
             // if an IO is active and completed at this time
             sched->finish(timestamp);
+            continue;
         }
 
         if (!sched->current_running_io_task) {
             if (sched->fetch_task()) {
                 sched->current_running_io_task->start_time = timestamp;
+                continue;
             } else if (request_queue.empty()) {
                 sched->total_time = timestamp;
                 break;
@@ -60,6 +62,11 @@ int main(int argc, char *argv[]) {
             switch (algo[0]) {
                 case 'N': {
                     sched = new FIFOScheduler();
+                    break;
+                }
+
+                case 'S': {
+                    sched = new SSTFScheduler();
                     break;
                 }
             }

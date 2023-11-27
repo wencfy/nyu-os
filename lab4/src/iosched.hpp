@@ -40,9 +40,9 @@ public:
     int busy_time = 0;
 
     io_task *current_running_io_task = nullptr;
-    virtual void add_task(io_task *task) = 0;
+    void add_task(io_task *task);
     virtual bool fetch_task() = 0;
-    virtual void seek() = 0;
+    void seek();
     void finish(int timestamp);
     void statistics();
 };
@@ -50,7 +50,11 @@ public:
 class FIFOScheduler: public Scheduler {
 public:
     FIFOScheduler();
-    void add_task(io_task *task);
     bool fetch_task();
-    void seek();
+};
+
+class SSTFScheduler: public Scheduler {
+public:
+    SSTFScheduler();
+    bool fetch_task();
 };
