@@ -40,7 +40,7 @@ public:
     int busy_time = 0;
 
     io_task *current_running_io_task = nullptr;
-    void add_task(io_task *task);
+    virtual void add_task(io_task *task);
     virtual bool fetch_task() = 0;
     void seek();
     void finish(int timestamp);
@@ -63,6 +63,7 @@ class LookScheduler: public Scheduler {
 private:
     bool dir = true;
 public:
+    void add_task(io_task *task);
     LookScheduler();
     bool fetch_task();
 };
@@ -70,5 +71,14 @@ public:
 class CLookScheduler: public Scheduler {
 public:
     CLookScheduler();
+    bool fetch_task();
+};
+
+class FLookScheduler: public LookScheduler {
+private:
+    std::list<io_task*> add_queue;
+public:
+    void add_task(io_task *task);
+    FLookScheduler();
     bool fetch_task();
 };

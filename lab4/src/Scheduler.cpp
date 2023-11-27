@@ -93,6 +93,10 @@ bool SSTFScheduler::fetch_task() {
 
 LookScheduler::LookScheduler() {}
 
+void LookScheduler::add_task(io_task *task) {
+    Scheduler::add_task(task);
+}
+
 bool LookScheduler::fetch_task() {
     if (io_queue.empty()) {
         return false;
@@ -163,4 +167,19 @@ bool CLookScheduler::fetch_task() {
         io_queue.erase(start);
     }
     return true;
+}
+
+
+FLookScheduler::FLookScheduler() {}
+
+void FLookScheduler::add_task(io_task *task) {
+    add_queue.push_back(task);
+}
+
+bool FLookScheduler::fetch_task() {
+    if (io_queue.empty()) {
+        io_queue.swap(add_queue);
+    }
+
+    return LookScheduler::fetch_task();
 }
